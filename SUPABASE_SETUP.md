@@ -10,25 +10,37 @@ security policies restrict every record to its owning account.
 2. In **SQL Editor**, run the SQL below.
 3. In **Project Settings → API**, copy the project URL and the public
    anon/publishable key. Never use a `service_role` or secret key in this app.
-4. Add those values to a local `supabase-config.js` file. This file is
-   intentionally ignored by Git and should not be committed.
-5. Serve this folder from a local web server or deploy it to a static host.
-   Do not open `index.html` directly as a `file://` URL.
-6. Open the app, create an account, and sign in. If email confirmation is
-   enabled, confirm the address before signing in.
-7. In Supabase **Authentication → URL Configuration**, set your deployed
+4. For local development, add the URL and publishable key to a
+   `supabase-config.js` file. This file is intentionally ignored by Git.
+5. Serve the app from a local web server. Do not open `index.html` directly as
+   a `file://` URL.
+6. In Supabase **Authentication → URL Configuration**, set your deployed
    address as the Site URL and add it to the allowed redirect URLs.
+7. Open the app, create an account, and sign in. If email confirmation is
+   enabled, confirm the address before signing in.
 
-GitHub Pages is one free option for hosting the static app. The app does not
-need a separately hosted server because Supabase provides the database and
-authentication API.
+## Deploying to GitHub Pages
+
+The repository includes a GitHub Actions workflow that builds the site and
+creates `supabase-config.js` during deployment. To enable it:
+
+1. In GitHub, open **Settings → Secrets and variables → Actions** and add
+   repository secrets named `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`.
+2. Set their values to your Supabase project URL and publishable key.
+3. In **Settings → Pages**, set the build and deployment source to **GitHub
+   Actions**.
+4. Push to `main` or manually run **Deploy to GitHub Pages** from the
+   repository's **Actions** tab.
+5. In Supabase **Authentication → URL Configuration**, allow
+   `https://metwisdom.github.io/budget-tracker/` as the Site URL and redirect
+   URL.
 
 The Supabase URL and anon/publishable key are intended for browser use. They
 are not database passwords; row-level security is what protects user data.
-Keep row-level security enabled and never add a service-role key to this app.
-Because `supabase-config.js` is excluded from the repository, a deployed copy
-without a separately configured client file will use browser-only storage and
-will not connect to Supabase.
+The Actions secrets keep these values out of repository files and commit
+history, but the generated client configuration is visible to visitors of the
+deployed site, as required for a browser app. Keep row-level security enabled
+and never add a service-role key or other secret key to this app.
 
 ## Database schema and access policies
 
