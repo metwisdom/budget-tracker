@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budget Tracker</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <h1>Budget Tracker — October 2026</h1>
+
+    
+    <section class="dashboard">
+      <h2>Summary</h2>
+      <ul>
+        <li>Income: <span id="stat-income">$5,000.00</span></li>
+        <li>Planned: <span id="stat-planned">$0.00</span></li>
+        <li>Actual: <span id="stat-actual">$0.00</span></li>
+        <li>Remaining: <span id="stat-remaining">$0.00</span></li>
+      </ul>
+    </section>
+
+    
+    <section class="form">
+      <h2>Log New Spending</h2>
+      <form id="spend-form" novalidate>
+        <p>
+          <label for="f-category">Category</label><br />
+          <input
+            id="f-category"
+            list="category-list"
+            placeholder="e.g. Food"
+            required
+          />
+          <datalist id="category-list">
+            <option value="Housing"></option>
+            <option value="Food"></option>
+            <option value="Transport"></option>
+            <option value="Personal"></option>
+            <option value="Savings"></option>
+          </datalist>
+        </p>
+        <p>
+          <label for="f-item">Item</label><br />
+          <input id="f-item" placeholder="e.g. Groceries" required />
+        </p>
+        <p>
+          <label for="f-planned">Planned ($)</label><br />
+          <input
+            id="f-planned"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Optional"
+          />
+        </p>
+        <p>
+          <label for="f-actual">Actual ($)</label><br />
+          <input
+            id="f-actual"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            required
+          />
+        </p>
+        <p>
+          <button type="submit" id="btn-add" disabled>+ Add</button>
+        </p>
+      </form>
+    </section>
+
+    
+    <section class="table">
+      <h2>Spending</h2>
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Item</th>
+            <th>Planned</th>
+            <th>Actual</th>
+            <th>Diff</th>
+            <th>Status</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody id="budget-body"></tbody>
+        <tfoot>
+          <tr>
+            <td>Totals</td>
+            <td></td>
+            <td id="total-planned">$0.00</td>
+            <td id="total-actual">$0.00</td>
+            <td id="total-diff">$0.00</td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+  </body>
+</html>
