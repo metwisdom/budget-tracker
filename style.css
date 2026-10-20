@@ -152,6 +152,83 @@ h1 {
   box-shadow: 0 3px 14px rgba(45, 36, 83, 0.05);
 }
 
+.salary-form[hidden],
+.auth-form[hidden],
+.account-panel [hidden],
+#app-content[hidden] {
+  display: none;
+}
+
+.account-panel {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr) auto;
+  align-items: end;
+  gap: 18px;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+}
+
+.account-panel h2 {
+  margin-bottom: 4px;
+  font-size: 18px;
+}
+
+.account-panel p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.account-panel a {
+  display: inline-block;
+  margin-top: 7px;
+  color: var(--green);
+  font-size: 11px;
+}
+
+.auth-form {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.auth-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.auth-actions .primary-button,
+.auth-actions .secondary-button {
+  min-height: 39px;
+}
+
+.secondary-button {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid #d8d2e8;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.secondary-button:hover {
+  background: #f0edff;
+}
+
+:root[data-theme='dark'] .secondary-button {
+  border-color: #514b66;
+  background: #302d3d;
+  color: var(--ink);
+}
+
+:root[data-theme='dark'] .secondary-button:hover {
+  background: #39344c;
+}
+
 .salary-form label,
 .field label {
   display: block;
@@ -953,6 +1030,18 @@ tfoot td {
 }
 
 @media (max-width: 850px) {
+  .account-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .auth-actions {
+    grid-column: 1 / -1;
+  }
+
   .category-budget-header {
     align-items: stretch;
     flex-direction: column;
@@ -992,6 +1081,14 @@ tfoot td {
 
   .salary-form {
     width: 100%;
+  }
+
+  .auth-form {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-actions {
+    grid-column: auto;
   }
 }
 

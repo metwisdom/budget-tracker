@@ -9,6 +9,8 @@
     />
     <title>Spending Tracker</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <script src="index.js" defer></script>
   </head>
   <body>
@@ -31,7 +33,7 @@
           >
             <span aria-hidden="true">☾</span>
           </button>
-          <form class="salary-form" id="salary-form">
+          <form class="salary-form" id="salary-form" hidden>
             <label for="salary-input">Monthly take-home salary</label>
             <div class="salary-control">
               <span aria-hidden="true">Ksh</span>
@@ -52,6 +54,38 @@
         </div>
       </header>
 
+      <section class="panel account-panel" id="account-panel" aria-labelledby="account-heading">
+        <div>
+          <h2 id="account-heading">Your account</h2>
+          <p id="account-status" role="status" aria-live="polite">Checking cloud setup…</p>
+          <a id="setup-link" href="SUPABASE_SETUP.md">Set up free cloud accounts</a>
+        </div>
+        <form id="auth-form" class="auth-form" hidden>
+          <div class="field">
+            <label for="auth-email">Email</label>
+            <input id="auth-email" type="email" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="auth-password">Password</label>
+            <input
+              id="auth-password"
+              type="password"
+              autocomplete="current-password"
+              minlength="8"
+              required
+            />
+          </div>
+          <div class="auth-actions">
+            <button type="submit" id="sign-in-button" class="primary-button">Sign in</button>
+            <button type="submit" id="sign-up-button" class="secondary-button">Create account</button>
+          </div>
+        </form>
+        <button type="button" id="sign-out-button" class="secondary-button" hidden>
+          Sign out
+        </button>
+      </section>
+
+      <div id="app-content" hidden>
       <section class="summary-section" aria-labelledby="summary-heading">
         <div class="section-heading">
           <div>
@@ -349,6 +383,7 @@
         role="status"
         aria-live="polite"
       ></p>
+      </div>
     </main>
   </body>
 </html>

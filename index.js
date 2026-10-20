@@ -26,10 +26,22 @@ const storageMessage = document.getElementById('storage-message');
 const budgetError = document.getElementById('budget-error');
 const salaryMessage = document.getElementById('salary-message');
 const themeToggle = document.getElementById('theme-toggle');
+const accountPanel = document.getElementById('account-panel');
+const accountStatus = document.getElementById('account-status');
+const authForm = document.getElementById('auth-form');
+const authEmail = document.getElementById('auth-email');
+const authPassword = document.getElementById('auth-password');
+const signInButton = document.getElementById('sign-in-button');
+const signUpButton = document.getElementById('sign-up-button');
+const signOutButton = document.getElementById('sign-out-button');
+const appContent = document.getElementById('app-content');
+const setupLink = document.getElementById('setup-link');
 
 let income = loadIncome();
 let rows = loadRows();
 let categoryBudgets = loadCategoryBudgets();
+let supabaseClient = null;
+let activeUser = null;
 
 function loadIncome() {
   try {
@@ -93,6 +105,7 @@ function loadCategoryBudgets() {
 }
 
 function saveData() {
+  if (supabaseClient && activeUser) return;
   try {
     localStorage.setItem(ROWS_KEY, JSON.stringify(rows));
     localStorage.setItem(INCOME_KEY, String(income));
@@ -101,6 +114,86 @@ function saveData() {
   } catch (error) {
     showStorageError(error);
   }
+}
+
+function requireSignedInUser() {
+  if (!supabaseClient) return;
+  if (!activeUser) throw new Error('Sign in before saving cloud data.');
+}
+
+async function saveIncome(value) {
+  requireSignedInUser();
+  if (!supabaseClient) return;
+  const { error } = await supabaseClient
+    .from('user_settings')
+    .upsert({ user_id: activeUser.id, income: value }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
+async function saveCategoryBudget(category, amount, existingBudget) {
+  requireSignedInUser();
+  if (!supabaseClient) return null;
+  const { data, error } = await supabaseClient
+    .from('category_budgets')
+    .upsert({
+      ...(existingBudget?.id ? { id: existingBudget.id } : {}),
+      user_id: activeUser.id,
+      category,
+      category_key: category.toLocaleLowerCase(),
+      amount
+    }, { onConflict: 'user_id,category_key' })
+    .select('id, category, amount')
+    .single();
+  if (error) throw error;
+  return { id: data.id, category: data.category, amount: Number(data.amount) };
+}
+
+async function removeCategoryBudget(budget) {
+  requireSignedInUser();
+  if (!supabaseClient) return;
+  const { error } = await supabaseClient
+    .from('category_budgets')
+    .delete()
+    .eq('id', budget.id)
+    .eq('user_id', activeUser.id);
+  if (error) throw error;
+}
+
+async function insertExpense(expense) {
+  requireSignedInUser();
+  if (!supabaseClient) return expense;
+  const { data, error } = await supabaseClient
+    .from('expenses')
+    .insert({
+      user_id: activeUser.id,
+      category: expense.category,
+      item: expense.item,
+      planned: expense.planned,
+      actual: expense.actual,
+      spent_on: expense.date
+    })
+    .select('id, category, item, planned, actual, spent_on')
+    .single();
+  if (error) throw error;
+  return {
+    id: data.id,
+    category: data.category,
+    item: data.item,
+    planned: Number(data.planned),
+    actual: Number(data.actual),
+    date: data.spent_on
+  };
+}
+
+async function removeExpense(expense) {
+  requireSignedInUser();
+  if (!supabaseClient) return;
+  const { error } = await supabaseClient
+    .from('expenses')
+    .delete()
+    .eq('id', expense.id)
+    .eq('user_id', activeUser.id);
+  if (error) throw error;
 }
 
 function showStorageError(error) {
@@ -378,6 +471,170 @@ themeToggle.addEventListener('click', () => {
   setTheme(currentTheme === 'dark' ? 'light' : 'dark', true);
 });
 
+function showLocalMode(message) {
+  activeUser = null;
+  salaryForm.hidden = false;
+  appContent.hidden = false;
+  authForm.hidden = true;
+  signOutButton.hidden = true;
+  setupLink.hidden = false;
+  accountStatus.textContent = message;
+}
+
+function showSignedOut(message = 'Sign in or create an account to load your private cloud data.') {
+  activeUser = null;
+  income = defaultIncome;
+  rows = [];
+  categoryBudgets = [];
+  salaryForm.hidden = true;
+  appContent.hidden = true;
+  authForm.hidden = false;
+  signOutButton.hidden = true;
+  setupLink.hidden = false;
+  accountStatus.textContent = message;
+  render();
+}
+
+async function loadCloudData(user) {
+  accountStatus.textContent = 'Loading your private budget data…';
+  authForm.hidden = true;
+  appContent.hidden = true;
+  salaryForm.hidden = true;
+
+  const [settingsResult, budgetsResult, expensesResult] = await Promise.all([
+    supabaseClient
+      .from('user_settings')
+      .select('income')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+    supabaseClient
+      .from('category_budgets')
+      .select('id, category, amount')
+      .eq('user_id', user.id)
+      .order('category'),
+    supabaseClient
+      .from('expenses')
+      .select('id, category, item, planned, actual, spent_on')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+  ]);
+
+  const queryError = settingsResult.error || budgetsResult.error || expensesResult.error;
+  if (queryError) throw queryError;
+
+  activeUser = user;
+  income = settingsResult.data ? Number(settingsResult.data.income) : defaultIncome;
+  categoryBudgets = budgetsResult.data.map(budget => ({
+    id: budget.id,
+    category: budget.category,
+    amount: Number(budget.amount)
+  }));
+  rows = expensesResult.data.map(expense => ({
+    id: expense.id,
+    category: expense.category,
+    item: expense.item,
+    planned: Number(expense.planned),
+    actual: Number(expense.actual),
+    date: expense.spent_on
+  }));
+  salaryForm.hidden = false;
+  appContent.hidden = false;
+  authForm.hidden = true;
+  signOutButton.hidden = false;
+  setupLink.hidden = true;
+  accountStatus.textContent = `Cloud data is private to ${user.email}.`;
+  render();
+  validateCategoryBudgetForm();
+}
+
+function showCloudLoadError(error) {
+  console.error('Unable to load cloud budget data.', error);
+  activeUser = null;
+  salaryForm.hidden = true;
+  appContent.hidden = true;
+  authForm.hidden = true;
+  signOutButton.hidden = false;
+  setupLink.hidden = false;
+  accountStatus.textContent = `Unable to load your cloud data: ${error.message}. Check the database setup, then sign out and try again.`;
+}
+
+authForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const action = event.submitter?.id;
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  signInButton.disabled = true;
+  signUpButton.disabled = true;
+
+  try {
+    if (action === 'sign-up-button') {
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) throw error;
+      if (data.session) {
+        await loadCloudData(data.session.user);
+      } else {
+        accountStatus.textContent = 'Account created. Check your email to confirm it, then sign in.';
+      }
+    } else {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await loadCloudData(data.user);
+    }
+  } catch (error) {
+    console.error('Account action failed.', error);
+    accountStatus.textContent = `Unable to ${action === 'sign-up-button' ? 'create your account' : 'sign in'}: ${error.message}`;
+  } finally {
+    signInButton.disabled = false;
+    signUpButton.disabled = false;
+  }
+});
+
+signOutButton.addEventListener('click', async () => {
+  signOutButton.disabled = true;
+  try {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) throw error;
+    showSignedOut();
+  } catch (error) {
+    console.error('Unable to sign out.', error);
+    accountStatus.textContent = `Unable to sign out: ${error.message}`;
+  } finally {
+    signOutButton.disabled = false;
+  }
+});
+
+async function initializeCloud() {
+  const config = window.BUDGET_TRACKER_SUPABASE_CONFIG;
+  if (!config?.url || !config?.anonKey) {
+    showLocalMode('Cloud accounts are not configured. Your data is stored only in this browser.');
+    return;
+  }
+
+  if (!window.supabase?.createClient) {
+    showLocalMode('Could not load Supabase. Check your internet connection; data is currently stored only in this browser.');
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(config.url, config.anonKey);
+  setupLink.hidden = true;
+  accountStatus.textContent = 'Checking your account…';
+  supabaseClient.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') showSignedOut();
+  });
+
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    if (data.session) {
+      await loadCloudData(data.session.user);
+    } else {
+      showSignedOut();
+    }
+  } catch (error) {
+    showCloudLoadError(error);
+  }
+}
+
 inputCategory.addEventListener('input', () => {
   updatePlannedAmount();
   formMessage.textContent = inputCategory.value.trim() && !getCategoryBudget(inputCategory.value)
@@ -416,7 +673,7 @@ categoryBudgetForm.addEventListener('input', () => {
   validateCategoryBudgetForm();
 });
 
-categoryBudgetForm.addEventListener('submit', event => {
+categoryBudgetForm.addEventListener('submit', async event => {
   event.preventDefault();
   validateCategoryBudgetForm();
   if (saveBudgetButton.disabled) return;
@@ -428,10 +685,17 @@ categoryBudgetForm.addEventListener('submit', event => {
     budget => budget.category.toLocaleLowerCase() === categoryKey
   );
 
-  if (existingBudget) {
-    existingBudget.amount = amount;
-  } else {
-    categoryBudgets.push({ category, amount });
+  try {
+    const savedBudget = await saveCategoryBudget(category, amount, existingBudget);
+    if (existingBudget) {
+      Object.assign(existingBudget, savedBudget || { category, amount });
+    } else {
+      categoryBudgets.push(savedBudget || { category, amount });
+    }
+  } catch (error) {
+    console.error('Unable to save category budget.', error);
+    budgetMessage.textContent = `Unable to save this budget: ${error.message}`;
+    return;
   }
 
   saveData();
@@ -442,7 +706,7 @@ categoryBudgetForm.addEventListener('submit', event => {
   budgetCategoryInput.focus();
 });
 
-budgetList.addEventListener('click', event => {
+budgetList.addEventListener('click', async event => {
   if (!(event.target instanceof Element)) return;
   const button = event.target.closest('.btn-delete-budget');
   if (!button) return;
@@ -450,13 +714,22 @@ budgetList.addEventListener('click', event => {
   const index = Number(button.dataset.index);
   if (!Number.isInteger(index) || index < 0 || index >= categoryBudgets.length) return;
 
+  const budget = categoryBudgets[index];
+  try {
+    await removeCategoryBudget(budget);
+  } catch (error) {
+    console.error('Unable to delete category budget.', error);
+    budgetMessage.textContent = `Unable to delete this budget: ${error.message}`;
+    return;
+  }
+
   const [removedBudget] = categoryBudgets.splice(index, 1);
   saveData();
   render();
   budgetMessage.textContent = `${removedBudget.category} monthly budget deleted.`;
 });
 
-salaryForm.addEventListener('submit', event => {
+salaryForm.addEventListener('submit', async event => {
   event.preventDefault();
   salaryMessage.textContent = '';
   if (!salaryInput.validity.valid || Number(salaryInput.value) <= 0) {
@@ -469,26 +742,41 @@ salaryForm.addEventListener('submit', event => {
     salaryMessage.textContent = `Your salary must be at least ${fmt(plannedTotal)} to cover all monthly category budgets.`;
     return;
   }
+  try {
+    await saveIncome(newIncome);
+  } catch (error) {
+    console.error('Unable to save salary.', error);
+    salaryMessage.textContent = `Unable to save salary: ${error.message}`;
+    return;
+  }
   income = newIncome;
   saveData();
   updateTotals();
   validateCategoryBudgetForm();
 });
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
   event.preventDefault();
   validateForm();
   if (btnAdd.disabled) return;
 
   const actual = Number(inputActual.value);
   const planned = inputPlanned.value === '' ? actual : Number(inputPlanned.value);
-  rows.unshift({
+  const expense = {
     category: inputCategory.value.trim(),
     item: inputItem.value.trim(),
     planned,
     actual,
     date: inputDate.value
-  });
+  };
+
+  try {
+    rows.unshift(await insertExpense(expense));
+  } catch (error) {
+    console.error('Unable to save spending entry.', error);
+    formMessage.textContent = `Unable to save spending: ${error.message}`;
+    return;
+  }
 
   saveData();
   render();
@@ -500,13 +788,21 @@ form.addEventListener('submit', event => {
   inputItem.focus();
 });
 
-tbody.addEventListener('click', event => {
+tbody.addEventListener('click', async event => {
   if (!(event.target instanceof Element)) return;
   const button = event.target.closest('.btn-delete');
   if (!button) return;
 
   const index = Number(button.dataset.index);
   if (!Number.isInteger(index) || index < 0 || index >= rows.length) return;
+
+  try {
+    await removeExpense(rows[index]);
+  } catch (error) {
+    console.error('Unable to delete spending entry.', error);
+    formMessage.textContent = `Unable to delete this entry: ${error.message}`;
+    return;
+  }
 
   rows.splice(index, 1);
   saveData();
@@ -524,3 +820,4 @@ updateMonthLabel();
 validateForm();
 validateCategoryBudgetForm();
 render();
+initializeCloud();
