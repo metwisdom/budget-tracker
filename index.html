@@ -3,99 +3,341 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Plan your monthly budget around your salary and keep track of every expense."
+    />
     <title>Budget Tracker</title>
     <link rel="stylesheet" href="style.css" />
+    <script src="index.js" defer></script>
   </head>
   <body>
-    <h1>Budget Tracker — October 2026</h1>
+    <main class="app-shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">YOUR MONEY, IN FOCUS</p>
+          <h1>Budget tracker</h1>
+          <p class="page-subtitle">
+            A clearer picture of what comes in and goes out.
+          </p>
+        </div>
+        <form class="salary-form" id="salary-form">
+          <label for="salary-input">Monthly take-home salary</label>
+          <div class="salary-control">
+            <span aria-hidden="true">Ksh</span>
+            <input
+              id="salary-input"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value="5000"
+              inputmode="decimal"
+              aria-label="Monthly take-home salary in Kenyan shillings"
+              required
+            />
+            <button type="submit">Update</button>
+          </div>
+          <p id="salary-message" class="form-error" role="alert" aria-live="polite"></p>
+        </form>
+      </header>
 
-    <section class="dashboard">
-      <h2>Summary</h2>
-      <ul>
-        <li>Income: <span id="stat-income">$5,000.00</span></li>
-        <li>Planned: <span id="stat-planned">$0.00</span></li>
-        <li>Actual: <span id="stat-actual">$0.00</span></li>
-        <li>Remaining: <span id="stat-remaining">$0.00</span></li>
-      </ul>
-    </section>
+      <section class="summary-section" aria-labelledby="summary-heading">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MONTHLY OVERVIEW</p>
+            <h2 id="summary-heading">
+              <span id="current-month"></span> at a glance
+            </h2>
+          </div>
+          <span class="live-label"><span></span> Live overview</span>
+        </div>
 
-    <section class="form">
-      <h2>Log New Spending</h2>
-      <form id="spend-form" novalidate>
-        <p>
-          <label for="f-category">Category</label><br />
-          <input
-            id="f-category"
-            list="category-list"
-            placeholder="e.g. Food"
-            required
-          />
-          <datalist id="category-list">
-            <option value="Housing"></option>
-            <option value="Food"></option>
-            <option value="Transport"></option>
-            <option value="Personal"></option>
-            <option value="Savings"></option>
-          </datalist>
-        </p>
-        <p>
-          <label for="f-item">Item</label><br />
-          <input id="f-item" placeholder="e.g. Groceries" required />
-        </p>
-        <p>
-          <label for="f-planned">Planned ($)</label><br />
-          <input
-            id="f-planned"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="Optional"
-          />
-        </p>
-        <p>
-          <label for="f-actual">Actual ($)</label><br />
-          <input
-            id="f-actual"
-            type="number"
-            min="0"
-            step="0.01"
-            placeholder="0.00"
-            required
-          />
-        </p>
-        <p>
-          <button type="submit" id="btn-add" disabled>+ Add</button>
-        </p>
-      </form>
-    </section>
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon income-icon">Ksh</span
+              ><span class="stat-label">Monthly salary</span>
+            </div>
+            <p class="stat-value" id="stat-income">Ksh5,000.00</p>
+            <p class="stat-note">Your take-home income</p>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon plan-icon">◎</span
+              ><span class="stat-label">Category budgets</span>
+            </div>
+            <p class="stat-value" id="stat-planned">Ksh0.00</p>
+            <p class="stat-note">Monthly category limits</p>
+          </article>
+          <article class="stat-card">
+            <div class="stat-top">
+              <span class="stat-icon spend-icon">↗</span
+              ><span class="stat-label">Actually spent</span>
+            </div>
+            <p class="stat-value" id="stat-actual">Ksh0.00</p>
+            <p class="stat-note">
+              <span id="spent-percent">0%</span> of your salary
+            </p>
+          </article>
+          <article class="stat-card remaining-card">
+            <div class="stat-top">
+              <span class="stat-icon remaining-icon">✳</span
+              ><span class="stat-label">Money left</span>
+            </div>
+            <p class="stat-value" id="stat-remaining">Ksh5,000.00</p>
+            <p class="stat-note">Salary after spending</p>
+          </article>
+        </div>
 
-    <section class="table">
-      <h2>Spending</h2>
-      <table border="1">
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>Item</th>
-            <th>Planned</th>
-            <th>Actual</th>
-            <th>Diff</th>
-            <th>Status</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
-        <tbody id="budget-body"></tbody>
-        <tfoot>
-          <tr>
-            <td>Totals</td>
-            <td></td>
-            <td id="total-planned">$0.00</td>
-            <td id="total-actual">$0.00</td>
-            <td id="total-diff">$0.00</td>
-            <td></td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
-    </section>
+        <div class="overview-bottom">
+          <article class="panel salary-progress">
+            <div class="panel-heading">
+              <div>
+                <h3>Salary check-in</h3>
+                <p>How much of your income has gone to spending?</p>
+              </div>
+              <strong id="salary-progress-label">0%</strong>
+            </div>
+            <div
+              class="progress-track"
+              id="salary-progress-track"
+              role="progressbar"
+              aria-label="Salary spent"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <span id="salary-progress-bar"></span>
+            </div>
+            <div class="progress-caption">
+              <span
+                ><i class="legend-dot spent-dot"></i>Spent
+                <strong id="progress-spent">Ksh0.00</strong></span
+              >
+              <span
+                ><i class="legend-dot left-dot"></i>Left
+                <strong id="progress-left">Ksh5,000.00</strong></span
+              >
+            </div>
+          </article>
+          <article class="panel category-panel">
+            <div class="panel-heading">
+              <div>
+                <h3>Spending by category</h3>
+                <p>See where your money is going.</p>
+              </div>
+            </div>
+            <div id="category-breakdown" class="category-breakdown"></div>
+          </article>
+        </div>
+      </section>
+
+      <section
+        class="category-budget-section"
+        aria-labelledby="category-budget-heading"
+      >
+        <article class="panel category-budget-panel">
+          <div class="category-budget-header">
+            <div>
+              <p class="eyebrow">PLAN YOUR MONTH</p>
+              <h2 id="category-budget-heading">Category budgets</h2>
+              <p>Set a monthly spending limit for each category.</p>
+            </div>
+            <form
+              id="category-budget-form"
+              class="category-budget-form"
+              novalidate
+            >
+              <div class="field">
+                <label for="budget-category">Category</label>
+                <input
+                  id="budget-category"
+                  list="category-list"
+                  placeholder="e.g. Food"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="budget-amount">Monthly plan</label>
+                <div class="input-with-prefix">
+                  <span aria-hidden="true">Ksh</span
+                  ><input
+                    id="budget-amount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    inputmode="decimal"
+                    aria-describedby="budget-error"
+                    required
+                  />
+                </div>
+                <p id="budget-error" class="form-error" role="alert" aria-live="polite"></p>
+              </div>
+              <button
+                type="submit"
+                id="btn-save-budget"
+                class="primary-button"
+                disabled
+              >
+                <span aria-hidden="true">+</span> Set budget
+              </button>
+            </form>
+          </div>
+          <div class="budget-list-heading">
+            <span>Category</span>
+            <span>Monthly plan</span>
+            <span>Spent</span>
+            <span>Left in plan</span>
+            <span><span class="visually-hidden">Actions</span></span>
+          </div>
+          <div id="category-budget-list" class="category-budget-list"></div>
+          <p
+            id="budget-message"
+            class="form-message budget-message"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </article>
+      </section>
+
+      <section class="activity-section" aria-label="Spending activity">
+        <article class="panel form-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">ADD TO YOUR TRACKER</p>
+              <h2>Log a spend</h2>
+              <p>Keep your budget up to date as you go.</p>
+            </div>
+            <span class="form-sparkle" aria-hidden="true">✳</span>
+          </div>
+          <form id="spend-form" novalidate>
+            <div class="form-fields">
+              <div class="field">
+                <label for="f-item">What did you spend on?</label>
+                <input
+                  id="f-item"
+                  placeholder="e.g. Weekly groceries"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="f-category">Category</label>
+                <input
+                  id="f-category"
+                  list="category-list"
+                  placeholder="Choose or type"
+                  required
+                />
+                <datalist id="category-list">
+                  <option value="Housing"></option>
+                  <option value="Food"></option>
+                  <option value="Transport"></option>
+                  <option value="Bills"></option>
+                  <option value="Personal"></option>
+                  <option value="Savings"></option>
+                  <option value="Other"></option>
+                </datalist>
+              </div>
+              <div class="field">
+                <label for="f-actual">Amount spent</label>
+                <div class="input-with-prefix">
+                  <span aria-hidden="true">Ksh</span
+                  ><input
+                    id="f-actual"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    inputmode="decimal"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-planned">Planned amount</label>
+                <div class="input-with-prefix">
+                  <span aria-hidden="true">Ksh</span
+                  ><input
+                    id="f-planned"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Set a category budget first"
+                    readonly
+                    aria-describedby="form-message"
+                  />
+                </div>
+              </div>
+              <div class="field">
+                <label for="f-date">Date</label>
+                <input id="f-date" type="date" required />
+              </div>
+            </div>
+            <div class="form-footer">
+              <p
+                id="form-message"
+                class="form-message"
+                role="status"
+                aria-live="polite"
+              ></p>
+              <button
+                type="submit"
+                id="btn-add"
+                class="primary-button"
+                disabled
+              >
+                <span aria-hidden="true">+</span> Add spending
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <article class="panel transactions-panel">
+          <div class="transactions-heading">
+            <div>
+              <p class="eyebrow">YOUR ACTIVITY</p>
+              <h2>Recent spending</h2>
+            </div>
+            <span id="transaction-count" class="transaction-count"
+              >0 entries</span
+            >
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Expense</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Planned</th>
+                  <th scope="col">Spent</th>
+                  <th scope="col">Difference</th>
+                  <th scope="col">
+                    <span class="visually-hidden">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="budget-body"></tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">Total</th>
+                  <td></td>
+                  <td id="total-planned">Ksh0.00</td>
+                  <td id="total-actual">Ksh0.00</td>
+                  <td id="total-diff">Ksh0.00</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </article>
+      </section>
+      <p
+        id="storage-message"
+        class="storage-message"
+        role="status"
+        aria-live="polite"
+      ></p>
+    </main>
   </body>
 </html>
