@@ -7,7 +7,7 @@
       name="description"
       content="Plan your monthly budget around your salary and keep track of every expense."
     />
-    <title>Budget Tracker</title>
+    <title>Spending Tracker</title>
     <link rel="stylesheet" href="style.css" />
     <script src="index.js" defer></script>
   </head>
@@ -21,24 +21,35 @@
             A clearer picture of what comes in and goes out.
           </p>
         </div>
-        <form class="salary-form" id="salary-form">
-          <label for="salary-input">Monthly take-home salary</label>
-          <div class="salary-control">
-            <span aria-hidden="true">Ksh</span>
-            <input
-              id="salary-input"
-              type="number"
-              min="0.01"
-              step="0.01"
-              value="5000"
-              inputmode="decimal"
-              aria-label="Monthly take-home salary in Kenyan shillings"
-              required
-            />
-            <button type="submit">Update</button>
-          </div>
-          <p id="salary-message" class="form-error" role="alert" aria-live="polite"></p>
-        </form>
+        <div class="header-controls">
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            type="button"
+            aria-label="Switch to dark mode"
+            aria-pressed="false"
+          >
+            <span aria-hidden="true">☾</span>
+          </button>
+          <form class="salary-form" id="salary-form">
+            <label for="salary-input">Monthly take-home salary</label>
+            <div class="salary-control">
+              <span aria-hidden="true">Ksh</span>
+              <input
+                id="salary-input"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value="5000"
+                inputmode="decimal"
+                aria-label="Monthly take-home salary in Kenyan shillings"
+                required
+              />
+              <button type="submit">Update</button>
+            </div>
+            <p id="salary-message" class="form-error" role="alert" aria-live="polite"></p>
+          </form>
+        </div>
       </header>
 
       <section class="summary-section" aria-labelledby="summary-heading">

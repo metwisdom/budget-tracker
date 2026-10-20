@@ -10,6 +10,18 @@
   --red: #c94f63;
 }
 
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --ink: #f1eef8;
+  --muted: #aaa4bc;
+  --green: #6959c8;
+  --green-bright: #b7aaf5;
+  --paper: #171522;
+  --line: #393448;
+  --white: #242131;
+  --red: #ff8795;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -47,6 +59,52 @@ button {
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 43px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.theme-toggle {
+  position: fixed;
+  z-index: 10;
+  top: 16px;
+  right: 16px;
+  display: inline-grid;
+  align-items: center;
+  justify-content: center;
+  width: 39px;
+  height: 39px;
+  padding: 0;
+  border: 1px solid #e9e5f2;
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 3px 14px rgba(45, 36, 83, 0.05);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+@media (max-width: 680px) {
+  .theme-toggle {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+.theme-toggle:hover {
+  background: #f0edff;
+  border-color: #c9c0ef;
+}
+
+.theme-toggle span {
+  color: var(--green);
+  font-size: 15px;
+  line-height: 1;
 }
 
 .eyebrow {
@@ -922,10 +980,194 @@ tfoot td {
     margin-bottom: 32px;
   }
 
-  .salary-form {
+  .header-controls {
+    align-items: stretch;
+    flex-direction: column;
     width: 100%;
   }
 
+  .theme-toggle {
+    align-self: flex-start;
+  }
+
+  .salary-form {
+    width: 100%;
+  }
+}
+
+:root[data-theme='dark'] body {
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(105, 89, 200, 0.16), transparent 38%),
+    radial-gradient(ellipse at 94% 12%, rgba(201, 92, 126, 0.1), transparent 30%),
+    var(--paper);
+}
+
+:root[data-theme='dark'] .eyebrow,
+:root[data-theme='dark'] .salary-form label,
+:root[data-theme='dark'] .field label {
+  color: #c0bad0;
+}
+
+:root[data-theme='dark'] .stat-top,
+:root[data-theme='dark'] .live-label,
+:root[data-theme='dark'] .progress-caption,
+:root[data-theme='dark'] .category-row-heading,
+:root[data-theme='dark'] .category-budget-row,
+:root[data-theme='dark'] tbody td {
+  color: #c0bad0;
+}
+
+:root[data-theme='dark'] .stat-note,
+:root[data-theme='dark'] .panel-heading p,
+:root[data-theme='dark'] .category-empty,
+:root[data-theme='dark'] .category-budget-header > div > p:last-child,
+:root[data-theme='dark'] .category-budget-empty,
+:root[data-theme='dark'] .date-cell,
+:root[data-theme='dark'] .empty-state {
+  color: #aaa4bc;
+}
+
+:root[data-theme='dark'] .progress-caption strong,
+:root[data-theme='dark'] .category-row-heading strong,
+:root[data-theme='dark'] .budget-category-name,
+:root[data-theme='dark'] .expense-name,
+:root[data-theme='dark'] .amount-cell,
+:root[data-theme='dark'] tfoot th,
+:root[data-theme='dark'] tfoot td,
+:root[data-theme='dark'] .empty-state strong {
+  color: #f1eef8;
+}
+
+:root[data-theme='dark'] .salary-control > span,
+:root[data-theme='dark'] .input-with-prefix > span {
+  color: #c0bad0;
+}
+
+:root[data-theme='dark'] .salary-form,
+:root[data-theme='dark'] .stat-card,
+:root[data-theme='dark'] .panel,
+:root[data-theme='dark'] .theme-toggle {
+  border-color: #393448;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+}
+
+:root[data-theme='dark'] .salary-control input,
+:root[data-theme='dark'] .field input,
+:root[data-theme='dark'] .input-with-prefix {
+  border-color: #454056;
+  background-color: #1d1b29;
+  color: var(--ink);
+}
+
+:root[data-theme='dark'] .field input[readonly] {
+  background: #302b45;
+  color: #d1c7ff;
+}
+
+:root[data-theme='dark'] .salary-control input:focus-visible,
+:root[data-theme='dark'] .field input:focus,
+:root[data-theme='dark'] .input-with-prefix:focus-within {
+  border-color: #9788e8;
+}
+
+:root[data-theme='dark'] .theme-toggle:hover {
+  border-color: #62578c;
+  background: #302b45;
+}
+
+:root[data-theme='dark'] .stat-card:nth-child(1) {
+  background: linear-gradient(145deg, #242131 12%, #302a49);
+}
+
+:root[data-theme='dark'] .stat-card:nth-child(2) {
+  background: linear-gradient(145deg, #242131 12%, #3b2d32);
+}
+
+:root[data-theme='dark'] .stat-card:nth-child(3) {
+  background: linear-gradient(145deg, #242131 12%, #3c2935);
+}
+
+:root[data-theme='dark'] .stat-card:nth-child(4) {
+  background: linear-gradient(145deg, #242131 12%, #253b38);
+}
+
+:root[data-theme='dark'] .salary-progress {
+  background: linear-gradient(140deg, #242131 25%, #302a49);
+}
+
+:root[data-theme='dark'] .category-panel {
+  background: linear-gradient(140deg, #242131 25%, #253b38);
+}
+
+:root[data-theme='dark'] .category-budget-panel {
+  background: linear-gradient(130deg, #242131 25%, #3a302b);
+}
+
+:root[data-theme='dark'] .form-panel {
+  background: linear-gradient(145deg, #242131 25%, #3b2934);
+}
+
+:root[data-theme='dark'] .transactions-panel {
+  background: linear-gradient(145deg, #242131 25%, #252e40);
+}
+
+:root[data-theme='dark'] .income-icon,
+:root[data-theme='dark'] .remaining-icon,
+:root[data-theme='dark'] .form-sparkle {
+  background: #393253;
+  color: #c8bcff;
+}
+
+:root[data-theme='dark'] .plan-icon {
+  background: #47372e;
+  color: #ffc18d;
+}
+
+:root[data-theme='dark'] .spend-icon {
+  background: #492e3b;
+  color: #ff9bac;
+}
+
+:root[data-theme='dark'] .progress-track,
+:root[data-theme='dark'] .category-track {
+  background: #393548;
+}
+
+:root[data-theme='dark'] .left-dot {
+  background: #514d5f;
+}
+
+:root[data-theme='dark'] .budget-list-heading,
+:root[data-theme='dark'] .category-budget-row,
+:root[data-theme='dark'] tbody tr {
+  border-color: #393448;
+}
+
+:root[data-theme='dark'] .transaction-count,
+:root[data-theme='dark'] .category-tag {
+  background: #393253;
+  color: #c8bcff;
+}
+
+:root[data-theme='dark'] .table-wrap {
+  border-color: #393448;
+}
+
+:root[data-theme='dark'] thead,
+:root[data-theme='dark'] tfoot {
+  background: #211f2e;
+}
+
+:root[data-theme='dark'] .btn-delete:hover {
+  background: #492e3b;
+}
+
+:root[data-theme='dark'] .form-message,
+:root[data-theme='dark'] .difference-positive {
+  color: #78d2af !important;
+}
+
+@media (max-width: 680px) {
   .stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 9px;

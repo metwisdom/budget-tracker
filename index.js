@@ -1,6 +1,7 @@
 const ROWS_KEY = 'budget-tracker-rows';
 const INCOME_KEY = 'budget-tracker-income';
 const CATEGORY_BUDGETS_KEY = 'budget-tracker-category-budgets';
+const THEME_KEY = 'budget-tracker-theme';
 const defaultIncome = 5000;
 const categoryColors = ['#c8f1df', '#f9dfbc', '#dcd8ff', '#cde9f7', '#f5d5dc', '#e8e6dd'];
 
@@ -24,6 +25,7 @@ const budgetMessage = document.getElementById('budget-message');
 const storageMessage = document.getElementById('storage-message');
 const budgetError = document.getElementById('budget-error');
 const salaryMessage = document.getElementById('salary-message');
+const themeToggle = document.getElementById('theme-toggle');
 
 let income = loadIncome();
 let rows = loadRows();
@@ -345,6 +347,37 @@ function localDateValue() {
   return localDate.toISOString().slice(0, 10);
 }
 
+function setTheme(theme, persist = false) {
+  const isDark = theme === 'dark';
+  document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+  themeToggle.setAttribute('aria-pressed', String(isDark));
+  themeToggle.setAttribute('aria-label', `Switch to ${isDark ? 'light' : 'dark'} mode`);
+  themeToggle.title = `Switch to ${isDark ? 'light' : 'dark'} mode`;
+  themeToggle.querySelector('[aria-hidden="true"]').textContent = isDark ? '☀' : '☾';
+
+  if (!persist) return;
+
+  try {
+    localStorage.setItem(THEME_KEY, theme);
+  } catch (error) {
+    showStorageError(error);
+  }
+}
+
+function loadTheme() {
+  try {
+    return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light';
+  } catch (error) {
+    showStorageError(error);
+    return 'light';
+  }
+}
+
+themeToggle.addEventListener('click', () => {
+  const currentTheme = document.documentElement.dataset.theme;
+  setTheme(currentTheme === 'dark' ? 'light' : 'dark', true);
+});
+
 inputCategory.addEventListener('input', () => {
   updatePlannedAmount();
   formMessage.textContent = inputCategory.value.trim() && !getCategoryBudget(inputCategory.value)
@@ -486,6 +519,7 @@ salaryInput.addEventListener('input', () => {
 });
 
 inputDate.value = localDateValue();
+setTheme(loadTheme());
 updateMonthLabel();
 validateForm();
 validateCategoryBudgetForm();
